@@ -28,13 +28,18 @@ public class ClientHandler {
                     if (msg.startsWith("/login ")) {
                         // login Bob
                         String usernameFromLogin = msg.split("\\s")[1];
+                        String usernameFromSQL = server.getDataBase().getNickByLogin(usernameFromLogin);
 
-                        if (server.isUserOnline(usernameFromLogin)) {
-                            sendMessage("/login_failed Current nickname is already used");
+                        if (server.isUserOnline(usernameFromSQL)) {
+                            sendMessage("/login_failed Данный никнэйм уже занят");
+                            continue;
+                        }
+                        if (usernameFromSQL == null) {
+                            sendMessage("/login_failed Такого пользователя не существует");
                             continue;
                         }
 
-                        username = usernameFromLogin;
+                        username = usernameFromSQL;
                         sendMessage("/login_ok " + username);
                         server.subscribe(this);
                         break;
@@ -46,6 +51,9 @@ public class ClientHandler {
                     if (msg.startsWith("/")) {
                         executeCommand(msg);
                         continue;
+                    }
+                    if (msg.startsWith("/exit")) {
+                        break;
                     }
                     server.broadcastMessage(username + ": " + msg);
                 }
@@ -64,6 +72,10 @@ public class ClientHandler {
             server.sendPrivateMessage(this, tokens[1], tokens[2]);
             return;
         }
+        if (cmd.startsWith("/who_am_i")) {
+            sendMessage("Вы:" + username);
+            return;
+        }
     }
 
     public void sendMessage(String message) {
@@ -71,6 +83,7 @@ public class ClientHandler {
             out.writeUTF(message);
         } catch (IOException e) {
             disconnect();
+
         }
     }
 
@@ -79,6 +92,7 @@ public class ClientHandler {
         if (socket != null) {
             try {
                 socket.close();
+                server.getDataBase().stop();
             } catch (IOException e) {
                 e.printStackTrace();
             }

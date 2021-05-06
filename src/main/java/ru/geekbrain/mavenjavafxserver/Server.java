@@ -9,11 +9,14 @@ import java.util.List;
 public class Server {
     private int port;
     private List<ClientHandler> clients;
+    private DataBaseClients dataBase;
 
     public Server(int port) {
         this.port = port;
         this.clients = new ArrayList<>();
         try (ServerSocket serverSocket = new ServerSocket(port)) {
+            dataBase = new DataBaseClients();
+            dataBase.start();
             System.out.println("Сервер запущен на порту " + port);
             while (true) {
                 System.out.println("Ждем нового клиента..");
@@ -23,6 +26,8 @@ public class Server {
             }
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            dataBase.stop();
         }
     }
 
@@ -75,5 +80,8 @@ public class Server {
             clientHandler.sendMessage(clientsList);
         }
     }
-}
 
+    public DataBaseClients getDataBase() {
+        return dataBase;
+    }
+}
