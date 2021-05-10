@@ -81,6 +81,21 @@ public class Server {
         }
     }
 
+    public synchronized void changeUsernameOfClient(String oldUsername, String newUsername, String login){
+        for (ClientHandler c : clients) {
+            if (c.getUsername().equals(oldUsername)){
+                String nu = getDataBase().changeUserName(c.getUsername(), newUsername, login);
+                if (nu.equals(oldUsername)){
+                    c.sendMessage("Имя " + newUsername + " уже занято. Выберите другое имя.");
+                    continue;
+                }
+                c.setUsername(nu);
+                broadcastMessage("Клиент " + oldUsername + " поменял ник на " + newUsername);
+                broadcastClientsList();
+            }
+        }
+    }
+
     public DataBaseClients getDataBase() {
         return dataBase;
     }

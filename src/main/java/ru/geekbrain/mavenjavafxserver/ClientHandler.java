@@ -11,9 +11,18 @@ public class ClientHandler {
     private DataInputStream in;
     private DataOutputStream out;
     private String username;
+    private String login;
 
     public String getUsername() {
         return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getLogin() {
+        return login;
     }
 
     public ClientHandler(Server server, Socket socket) throws IOException {
@@ -27,8 +36,8 @@ public class ClientHandler {
                     String msg = in.readUTF();
                     if (msg.startsWith("/login ")) {
                         // login Bob
-                        String usernameFromLogin = msg.split("\\s")[1];
-                        String usernameFromSQL = server.getDataBase().getNickByLogin(usernameFromLogin);
+                        login = msg.split("\\s")[1];
+                        String usernameFromSQL = server.getDataBase().getNickByLogin(login);
 
                         if (server.isUserOnline(usernameFromSQL)) {
                             sendMessage("/login_failed Данный никнэйм уже занят");
@@ -38,7 +47,6 @@ public class ClientHandler {
                             sendMessage("/login_failed Такого пользователя не существует");
                             continue;
                         }
-
                         username = usernameFromSQL;
                         sendMessage("/login_ok " + username);
                         server.subscribe(this);
@@ -49,13 +57,15 @@ public class ClientHandler {
                 while (true) { // Цикл общения с клиентом
                     String msg = in.readUTF();
                     if (msg.startsWith("/")) {
+                        if (msg.startsWith("/exit")) {
+                            break;
+                        }
                         executeCommand(msg);
+                        System.out.println(this.username + "Написал сообщение: " + msg);
                         continue;
                     }
-                    if (msg.startsWith("/exit")) {
-                        break;
-                    }
                     server.broadcastMessage(username + ": " + msg);
+                    System.out.println("Сервер разослал сообщение " + username + " всем участникам");
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -76,14 +86,19 @@ public class ClientHandler {
             sendMessage("Вы:" + username);
             return;
         }
+        if (cmd.startsWith("/change_nike")) {
+            String tokens = cmd.split("\\s")[1];
+            server.changeUsernameOfClient(this.username, tokens, this.login);
+            return;
+        }
     }
 
     public void sendMessage(String message) {
         try {
             out.writeUTF(message);
+            System.out.println("Сообщение от " + username + " ушло.");
         } catch (IOException e) {
             disconnect();
-
         }
     }
 
@@ -92,7 +107,6 @@ public class ClientHandler {
         if (socket != null) {
             try {
                 socket.close();
-                server.getDataBase().stop();
             } catch (IOException e) {
                 e.printStackTrace();
             }

@@ -1,16 +1,9 @@
 package ru.geekbrain.mavenjavafxserver;
 
 import java.sql.*;
+import java.util.ArrayList;
 
 public class DataBaseClients {
-
-    /*
-    Вроде все работает, но есть косяк который не пойму как исправить.
-    При закрытии клиентсого приложения не обновляется клиентский лист (тех кто онлайн), остается прежним.
-    И вообще как я понял поток не останавливается, почему так? Как это исправить?
-
-
-     */
 
     private static final String DATABASE_NAME = "//localhost:5432/geekbrains-chat";
     private static final String LOGIN_DATA = "postgres";
@@ -48,6 +41,51 @@ public class DataBaseClients {
             e.printStackTrace();
         }
         return null;
+    }
+
+    private ArrayList<String> getUsersList() {
+        ArrayList<String> users = new ArrayList<>();
+        try {
+            ResultSet rs = postgresConnection.createStatement().executeQuery("SELECT username FROM clients");
+            while (rs.next()){
+                users.add(rs.getString("username"));
+            }
+        } catch (SQLException e){
+            e.printStackTrace();
+        }
+        return users;
+    }
+
+    private boolean busyUserName(String name){
+        ArrayList<String> users = new ArrayList<>(getUsersList());
+        for (String user: users) {
+            if (user.equals(name)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public String changeUserName(String oldName, String newName, String login) {
+        ArrayList<String> users = new ArrayList<>(getUsersList());
+        if (!busyUserName(newName)){
+            try {
+                for (String user : users){
+                    if (user.equals(oldName)) {
+                        PreparedStatement ps = postgresConnection.prepareStatement("UPDATE clients SET username=? WHERE login=?");
+                        ps.setString(1, newName);
+                        ps.setString(2, login);
+                        int rowsAffected = ps.executeUpdate();
+                        System.out.println("Записей изменено: " + rowsAffected);
+                    }
+                }
+            } catch (SQLException e){
+                e.printStackTrace();
+            }
+            return newName;
+        } else {
+            return oldName;
+        }
     }
 
     public void stop() {
