@@ -11,6 +11,7 @@ public class Server {
     private List<ClientHandler> clients;
     private DataBaseClients dataBase;
 
+
     public Server(int port) {
         this.port = port;
         this.clients = new ArrayList<>();
