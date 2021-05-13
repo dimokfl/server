@@ -4,8 +4,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
+
 
 public class ClientHandler {
     private Server server;
@@ -33,8 +32,7 @@ public class ClientHandler {
         this.socket = socket;
         this.in = new DataInputStream(socket.getInputStream());
         this.out = new DataOutputStream(socket.getOutputStream());
-
-        new Thread(() -> {
+        server.getExecutorService().submit(() -> {
             try {
                 while (true) { // Цикл авторизации
                     String msg = in.readUTF();
@@ -76,7 +74,7 @@ public class ClientHandler {
             } finally {
                 disconnect();
             }
-        }).start();
+        });
     }
 
     private void executeCommand(String cmd) {
@@ -117,3 +115,59 @@ public class ClientHandler {
         }
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+//        server.getExecutorService().shutdown();
+
+//        new Thread(() -> {
+//            try {
+//                while (true) { // Цикл авторизации
+//                    String msg = in.readUTF();
+//                    if (msg.startsWith("/login ")) {
+//                        // login Bob
+//                        login = msg.split("\\s")[1];
+//                        String usernameFromSQL = server.getDataBase().getNickByLogin(login);
+//
+//                        if (server.isUserOnline(usernameFromSQL)) {
+//                            sendMessage("/login_failed Данный никнэйм уже занят");
+//                            continue;
+//                        }
+//                        if (usernameFromSQL == null) {
+//                            sendMessage("/login_failed Такого пользователя не существует");
+//                            continue;
+//                        }
+//                        username = usernameFromSQL;
+//                        sendMessage("/login_ok " + username);
+//                        server.subscribe(this);
+//                        break;
+//                    }
+//                }
+//
+//                while (true) { // Цикл общения с клиентом
+//                    String msg = in.readUTF();
+//                    if (msg.startsWith("/")) {
+//                        if (msg.startsWith("/exit")) {
+//                            break;
+//                        }
+//                        executeCommand(msg);
+//                        System.out.println(this.username + "Написал сообщение: " + msg);
+//                        continue;
+//                    }
+//                    server.broadcastMessage(username + ": " + msg);
+//                    System.out.println("Сервер разослал сообщение " + username + " всем участникам");
+//                }
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            } finally {
+//                disconnect();
+//            }
+//        }).start();
