@@ -4,6 +4,8 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 
 public class ClientHandler {
     private Server server;
@@ -12,6 +14,7 @@ public class ClientHandler {
     private DataOutputStream out;
     private String username;
     private String login;
+
 
     public String getUsername() {
         return username;
@@ -30,6 +33,7 @@ public class ClientHandler {
         this.socket = socket;
         this.in = new DataInputStream(socket.getInputStream());
         this.out = new DataOutputStream(socket.getOutputStream());
+
         new Thread(() -> {
             try {
                 while (true) { // Цикл авторизации
