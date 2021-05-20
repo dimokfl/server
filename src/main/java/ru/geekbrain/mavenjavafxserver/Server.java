@@ -1,5 +1,8 @@
 package ru.geekbrain.mavenjavafxserver;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -14,11 +17,13 @@ public class Server {
     private List<ClientHandler> clients;
     private DataBaseClients dataBase;
     private ExecutorService executorService;
+    private final Logger LOG_SERVER = LogManager.getLogger(Server.class.getName());
 
 
     public Server(int port) {
         this.port = port;
         this.clients = new ArrayList<>();
+        LOG_SERVER.info("Сервер подключился");
         executorService = Executors.newCachedThreadPool();
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             dataBase = new DataBaseClients();
@@ -29,9 +34,12 @@ public class Server {
                 Socket socket = serverSocket.accept();
                 System.out.println("Клиент подключился");
                 new ClientHandler(this, socket);
+                LOG_SERVER.info("Подключился новый клиент.");
             }
         } catch (IOException e) {
             e.printStackTrace();
+            LOG_SERVER.error("error message: " + e.getMessage());
+            LOG_SERVER.fatal("fatal message: " + e.getMessage());
         } finally {
             dataBase.stop();
         }
@@ -109,4 +117,5 @@ public class Server {
     public ExecutorService getExecutorService() {
         return executorService;
     }
+
 }

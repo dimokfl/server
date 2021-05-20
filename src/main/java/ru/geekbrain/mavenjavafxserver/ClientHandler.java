@@ -1,5 +1,8 @@
 package ru.geekbrain.mavenjavafxserver;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -13,6 +16,7 @@ public class ClientHandler {
     private DataOutputStream out;
     private String username;
     private String login;
+    private final Logger LOG_CLIENT = LogManager.getLogger(ClientHandler.class.getName());
 
 
     public String getUsername() {
@@ -68,9 +72,12 @@ public class ClientHandler {
                     }
                     server.broadcastMessage(username + ": " + msg);
                     System.out.println("Сервер разослал сообщение " + username + " всем участникам");
+                    LOG_CLIENT.info("Клиент " + username + " написал сообщение");
                 }
             } catch (IOException e) {
                 e.printStackTrace();
+                LOG_CLIENT.error("Ошибка в цикле общения: " + e.getMessage());
+                LOG_CLIENT.fatal("Фатальная ошибка в цикле общения: " + e.getMessage());
             } finally {
                 disconnect();
             }
@@ -101,6 +108,8 @@ public class ClientHandler {
             System.out.println("Сообщение от " + username + " ушло.");
         } catch (IOException e) {
             disconnect();
+            LOG_CLIENT.error("Ошибка при отправке сообщения: " + e.getMessage());
+            LOG_CLIENT.fatal("Фатальная ошибка при отправке сообщения: " + e.getMessage());
         }
     }
 
@@ -111,6 +120,8 @@ public class ClientHandler {
                 socket.close();
             } catch (IOException e) {
                 e.printStackTrace();
+                LOG_CLIENT.error("Ошибка при закрытии соединения: " + e.getMessage());
+                LOG_CLIENT.fatal("Фатальная ошибка при закрытии соединения: " + e.getMessage());
             }
         }
     }
