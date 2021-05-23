@@ -1,5 +1,6 @@
 package ru.geekbrain.mavenjavafxserver;
 
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -33,13 +34,13 @@ public class Server {
                 System.out.println("Ждем нового клиента..");
                 Socket socket = serverSocket.accept();
                 System.out.println("Клиент подключился");
-                new ClientHandler(this, socket);
                 LOG_SERVER.info("Подключился новый клиент.");
+                new ClientHandler(this, socket);
             }
         } catch (IOException e) {
             e.printStackTrace();
-            LOG_SERVER.error("error message: " + e.getMessage());
-            LOG_SERVER.fatal("fatal message: " + e.getMessage());
+            LOG_SERVER.error("Ошибка при создании серверсокета:");
+            LOG_SERVER.throwing(Level.ERROR, e);
         } finally {
             dataBase.stop();
         }

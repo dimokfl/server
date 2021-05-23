@@ -1,5 +1,6 @@
 package ru.geekbrain.mavenjavafxserver;
 
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -56,6 +57,7 @@ public class ClientHandler {
                         username = usernameFromSQL;
                         sendMessage("/login_ok " + username);
                         server.subscribe(this);
+                        LOG_CLIENT.info("Клиент " + username + " подключился к серверу.");
                         break;
                     }
                 }
@@ -76,8 +78,8 @@ public class ClientHandler {
                 }
             } catch (IOException e) {
                 e.printStackTrace();
-                LOG_CLIENT.error("Ошибка в цикле общения: " + e.getMessage());
-                LOG_CLIENT.fatal("Фатальная ошибка в цикле общения: " + e.getMessage());
+                LOG_CLIENT.error("Ошибка в цикле общения у клиента " + username);
+                LOG_CLIENT.throwing(Level.ERROR, e);
             } finally {
                 disconnect();
             }
@@ -108,8 +110,8 @@ public class ClientHandler {
             System.out.println("Сообщение от " + username + " ушло.");
         } catch (IOException e) {
             disconnect();
-            LOG_CLIENT.error("Ошибка при отправке сообщения: " + e.getMessage());
-            LOG_CLIENT.fatal("Фатальная ошибка при отправке сообщения: " + e.getMessage());
+            LOG_CLIENT.error("Ошибка при отправке сообщения у клиента " + username);
+            LOG_CLIENT.throwing(Level.ERROR, e);
         }
     }
 
@@ -120,8 +122,8 @@ public class ClientHandler {
                 socket.close();
             } catch (IOException e) {
                 e.printStackTrace();
-                LOG_CLIENT.error("Ошибка при закрытии соединения: " + e.getMessage());
-                LOG_CLIENT.fatal("Фатальная ошибка при закрытии соединения: " + e.getMessage());
+                LOG_CLIENT.error("Ошибка при закрытии соединения у клиента " + username);
+                LOG_CLIENT.throwing(Level.ERROR, e);
             }
         }
     }
